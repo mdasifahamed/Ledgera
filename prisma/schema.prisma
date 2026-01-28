@@ -1,0 +1,313 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Table 1: Chain Configuration (Reference Table)
+model ChainConfig {
+  chainId     Int    @id @map("chain_id")
+  networkName String @map("network_name")
+  tokenSymbol String @map("token_symbol")
+
+  // Relations
+  nativeTransfers     NativeTransfer[]
+  cexFlows            CexFlow[]
+  decodedEvents       DecodedEvent[]
+  tokens              Token[]
+  pools               Pool[]
+  stablecoinTransfers StablecoinTransfer[]
+  stablecoinCexFlows  StablecoinCexFlow[]
+  poolSwaps           PoolSwap[]
+  poolLiquidity       PoolLiquidity[]
+  poolFees            PoolFees[]
+
+  @@map("chain_config")
+}
+
+// Table 5: Token (Reference Table)
+// Stores token metadata
+model Token {
+  id           String @id @default(uuid())
+  chainId      Int    @map("chain_id")
+  tokenAddress String @map("token_address")
+  tokenName    String @map("token_name")
+  tokenSymbol  String @map("token_symbol")
+  tokenDecimal Int    @map("token_decimal")
+
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+
+  // Relations
+  poolsAsToken0       Pool[]               @relation("Token0")
+  poolsAsToken1       Pool[]               @relation("Token1")
+  stablecoinTransfers StablecoinTransfer[]
+  stablecoinCexFlows  StablecoinCexFlow[]
+
+  @@unique([chainId, tokenAddress])
+  @@index([tokenSymbol])
+  @@map("tokens")
+}
+
+// Table 6: Pool (Reference Table)
+// Stores DEX liquidity pool metadata
+model Pool {
+  id            String  @id @default(uuid())
+  chainId       Int     @map("chain_id")
+  poolAddress   String  @map("pool_address")
+  token0Address String  @map("token_0_address")
+  token1Address String  @map("token_1_address")
+  poolSymbol    String  @map("pool_symbol") // e.g., "WETH/USDT"
+  dexName       String  @map("dex_name") // e.g., "uniswap", "sushiswap"
+  dexVersion    String? @map("dex_version") // e.g., "v2", "v3" (nullable)
+  fees          Int[] // Array of fee tiers
+
+  chain  ChainConfig @relation(fields: [chainId], references: [chainId])
+  token0 Token       @relation("Token0", fields: [chainId, token0Address], references: [chainId, tokenAddress])
+  token1 Token       @relation("Token1", fields: [chainId, token1Address], references: [chainId, tokenAddress])
+
+  // Pool metrics relations
+  swaps     PoolSwap[]
+  liquidity PoolLiquidity[]
+  poolFees  PoolFees[]
+
+  @@unique([chainId, poolAddress])
+  @@index([dexName])
+  @@index([token0Address])
+  @@index([token1Address])
+  @@map("pools")
+}
+
+// Table 2: Native Transfers (Hypertable)
+// Stores block-level native ETH/BNB/MATIC transfers
+model NativeTransfer {
+  id                String   @default(uuid())
+  chainId           Int      @map("chain_id")
+  blockNumber       BigInt   @map("block_number")
+  blockHash         String   @map("block_hash")
+  blockTimeStamp    DateTime @map("block_time_stamp") // TimescaleDB partition key
+  totalAmount       String   @map("total_amount") // Wei as string (handles BigInt)
+  transactionHashes String[] @map("transaction_hashes") // Array of tx hashes
+
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([blockNumber])
+  @@map("native_transfers")
+}
+
+// Table 3: CEX Flows (Hypertable)
+// Stores CEX inflow/outflow per block
+model CexFlow {
+  id                String   @default(uuid())
+  chainId           Int      @map("chain_id")
+  blockNumber       BigInt   @map("block_number")
+  blockTimeStamp    DateTime @map("block_time_stamp") // TimescaleDB partition key
+  cexName           String   @map("cex_name") // "binance", "kucoin", "bybit"
+  flowType          FlowType @map("flow_type") // INFLOW or OUTFLOW
+  totalAmount       String   @map("total_amount") // Wei as string
+  totalAmountHuman  String   @map("total_amount_human") // Human readable (ETH)
+  transactionHashes String[] @map("transaction_hashes") // Array of tx hashes
+  transactionCount  Int      @map("transaction_count")
+
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, cexName, flowType, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([cexName, flowType])
+  @@index([blockNumber])
+  @@index([chainId, cexName, flowType])
+  @@map("cex_flows")
+}
+
+enum FlowType {
+  INFLOW
+  OUTFLOW
+}
+
+enum LiquidityType {
+  ADD // Mint events - liquidity provision
+  REMOVE // Burn events - liquidity withdrawal
+}
+
+// Table 4: Decoded Events (Hypertable)
+// Stores decoded smart contract events
+model DecodedEvent {
+  id               String   @default(uuid())
+  chainId          Int      @map("chain_id")
+  blockNumber      BigInt   @map("block_number")
+  blockTimeStamp   DateTime @map("block_time_stamp") // TimescaleDB partition key
+  contractAddress  String   @map("contract_address")
+  transactionHash  String   @map("transaction_hash")
+  transactionIndex Int      @map("transaction_index")
+  eventName        String   @map("event_name") // "Transfer", "Swap", "Approval", etc.
+  eventArgs        Json     @map("event_args") // Decoded event arguments
+
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+
+  @@id([id, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([contractAddress])
+  @@index([eventName])
+  @@index([transactionHash])
+  @@map("decoded_events")
+}
+
+// Table 7: Stablecoin Transfers (Hypertable)
+// Stores block-level stablecoin (ERC-20) transfers, per-token aggregation
+model StablecoinTransfer {
+  id                String   @default(uuid())
+  chainId           Int      @map("chain_id")
+  tokenAddress      String   @map("token_address") // ERC-20 contract address (lowercase)
+  blockNumber       BigInt   @map("block_number")
+  blockHash         String   @map("block_hash")
+  blockTimeStamp    DateTime @map("block_time_stamp") // TimescaleDB partition key
+  totalAmount       String   @map("total_amount") // Token smallest unit as string (handles BigInt)
+  totalAmountHuman  String   @map("total_amount_human") // Human readable (adjusted for decimals)
+  transactionHashes String[] @map("transaction_hashes") // Array of tx hashes
+  transactionCount  Int      @map("transaction_count")
+
+  // Relations
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+  token Token       @relation(fields: [chainId, tokenAddress], references: [chainId, tokenAddress])
+
+  // Composite unique constraint: one record per token per block per chain
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, tokenAddress, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([chainId, tokenAddress])
+  @@index([blockNumber])
+  @@map("stablecoin_transfers")
+}
+
+// Table 8: Stablecoin CEX Flows (Hypertable)
+// Stores CEX inflow/outflow per block for stablecoins
+model StablecoinCexFlow {
+  id                String   @default(uuid())
+  chainId           Int      @map("chain_id")
+  tokenAddress      String   @map("token_address") // ERC-20 contract address (lowercase)
+  blockNumber       BigInt   @map("block_number")
+  blockTimeStamp    DateTime @map("block_time_stamp") // TimescaleDB partition key
+  cexName           String   @map("cex_name") // "binance", "kucoin", "bybit"
+  flowType          FlowType @map("flow_type") // INFLOW or OUTFLOW
+  totalAmount       String   @map("total_amount") // Token smallest unit as string
+  totalAmountHuman  String   @map("total_amount_human") // Human readable (adjusted for decimals)
+  transactionHashes String[] @map("transaction_hashes") // Array of tx hashes
+  transactionCount  Int      @map("transaction_count")
+
+  // Relations
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+  token Token       @relation(fields: [chainId, tokenAddress], references: [chainId, tokenAddress])
+
+  // Composite unique constraint: one record per token per CEX per flow type per block
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, tokenAddress, cexName, flowType, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([chainId, cexName, flowType])
+  @@index([chainId, tokenAddress, flowType])
+  @@index([blockNumber])
+  @@map("stablecoin_cex_flows")
+}
+
+// Table 9: Pool Swaps (Hypertable)
+// Block-level swap activity per pool
+model PoolSwap {
+  id             String   @default(uuid())
+  chainId        Int      @map("chain_id")
+  poolAddress    String   @map("pool_address") // DEX pool address (lowercase)
+  blockNumber    BigInt   @map("block_number")
+  blockTimeStamp DateTime @map("block_time_stamp") // TimescaleDB partition key
+
+  // Volume in token amounts (raw + human readable)
+  volumeToken0      String @map("volume_token_0") // Amount of token0 swapped (smallest unit)
+  volumeToken0Human String @map("volume_token_0_human") // Human readable
+  volumeToken1      String @map("volume_token_1") // Amount of token1 swapped (smallest unit)
+  volumeToken1Human String @map("volume_token_1_human") // Human readable
+
+  swapCount         Int      @map("swap_count") // Number of swaps in this block
+  transactionHashes String[] @map("transaction_hashes") // Array of tx hashes
+
+  // Relations
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+  pool  Pool        @relation(fields: [chainId, poolAddress], references: [chainId, poolAddress])
+
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, poolAddress, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([chainId, poolAddress])
+  @@index([blockNumber])
+  @@map("pool_swaps")
+}
+
+// Table 10: Pool Liquidity (Hypertable)
+// Block-level liquidity changes per pool (ADD/REMOVE)
+model PoolLiquidity {
+  id             String        @default(uuid())
+  chainId        Int           @map("chain_id")
+  poolAddress    String        @map("pool_address")
+  blockNumber    BigInt        @map("block_number")
+  blockTimeStamp DateTime      @map("block_time_stamp") // TimescaleDB partition key
+  liquidityType  LiquidityType @map("liquidity_type") // ADD (Mint) or REMOVE (Burn)
+
+  // Liquidity amounts
+  amountToken0      String @map("amount_token_0") // Token0 amount (smallest unit)
+  amountToken0Human String @map("amount_token_0_human") // Human readable
+  amountToken1      String @map("amount_token_1") // Token1 amount (smallest unit)
+  amountToken1Human String @map("amount_token_1_human") // Human readable
+
+  transactionCount  Int      @map("transaction_count")
+  transactionHashes String[] @map("transaction_hashes")
+
+  // Relations
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+  pool  Pool        @relation(fields: [chainId, poolAddress], references: [chainId, poolAddress])
+
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, poolAddress, liquidityType, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([chainId, poolAddress, liquidityType])
+  @@index([blockNumber])
+  @@map("pool_liquidity")
+}
+
+// Table 11: Pool Fees (Hypertable)
+// Block-level fees collected per pool (from V3 Collect events)
+model PoolFees {
+  id             String   @default(uuid())
+  chainId        Int      @map("chain_id")
+  poolAddress    String   @map("pool_address")
+  blockNumber    BigInt   @map("block_number")
+  blockTimeStamp DateTime @map("block_time_stamp") // TimescaleDB partition key
+
+  // Fees collected
+  feesToken0      String @map("fees_token_0") // Token0 fees (smallest unit)
+  feesToken0Human String @map("fees_token_0_human") // Human readable
+  feesToken1      String @map("fees_token_1") // Token1 fees (smallest unit)
+  feesToken1Human String @map("fees_token_1_human") // Human readable
+
+  collectCount      Int      @map("collect_count") // Number of Collect events
+  transactionHashes String[] @map("transaction_hashes")
+
+  // Relations
+  chain ChainConfig @relation(fields: [chainId], references: [chainId])
+  pool  Pool        @relation(fields: [chainId, poolAddress], references: [chainId, poolAddress])
+
+  @@id([id, blockTimeStamp])
+  @@unique([chainId, poolAddress, blockNumber, blockTimeStamp])
+  @@index([chainId, blockTimeStamp])
+  @@index([chainId, poolAddress])
+  @@index([blockNumber])
+  @@map("pool_fees")
+}
