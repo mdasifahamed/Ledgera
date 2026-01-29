@@ -51,7 +51,7 @@ export class GroupedEventProcessor {
     );
 
     // Proceed and save the events
-    Promise.all([
+    await Promise.all([
       await this.processSingleEventTransactions(single, chainId),
       await this.processMultiEventTransactions(multi, chainId)
     ])
