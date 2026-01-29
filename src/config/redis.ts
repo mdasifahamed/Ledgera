@@ -1,14 +1,16 @@
 import { Redis } from "ioredis";
-
+import 'dotenv/config';  // Auto-loads .env
+import dotenv from 'dotenv';
+dotenv.config();
 /**
  * Creates redis connecstion to use bullMQ dor the worker queues
  */
 
-export const redisConnection = new Redis({
-  host: process.env.REDIS_HOST || "localhost",
-  port: parseInt(process.env.REDIS_PORT || "6379"),
+
+export const redisConnection = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null, // to run bullmq it is required here to keeep it null
 });
+
 
 
 /**
