@@ -53,7 +53,7 @@ export const blockQueue = new Queue<BlockJobData>(QUEUE_NAMES.BLOCKS, {
   defaultJobOptions: {
     attempts: 5,
     backoff: { type: "exponential", delay: 10000 },
-    removeOnComplete: 100,
+    removeOnComplete: 50,
     removeOnFail: 1000,
   },
 });
@@ -63,7 +63,7 @@ export const eventQueue = new Queue<EventJobData>(QUEUE_NAMES.EVENTS, {
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 10000 },
-    removeOnComplete: 100,
+    removeOnComplete: 50,
     removeOnFail: 1000,
   },
 });
@@ -73,7 +73,7 @@ export const groupedEventQueue = new Queue<GroupedEventJobData>(QUEUE_NAMES.GROU
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 10000 },
-    removeOnComplete: 100,
+    removeOnComplete: 50,
     removeOnFail: 1000,
   },
 });
