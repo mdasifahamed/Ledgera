@@ -50,11 +50,11 @@ export class GroupedEventProcessor {
       `[GroupedEventProcessor] Chain ${chainId} Blocks ${fromBlock}-${toBlock}`
     );
 
-    // Proceed and save the events
+
     await Promise.all([
-      await this.processSingleEventTransactions(single, chainId),
-      await this.processMultiEventTransactions(multi, chainId)
-    ])
+      this.processSingleEventTransactions(single, chainId),
+      this.processMultiEventTransactions(multi, chainId)
+    ]);
   }
 
   /**
