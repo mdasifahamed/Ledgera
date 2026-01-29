@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 export interface ChainConfig {
   id: number;
   name: string;
