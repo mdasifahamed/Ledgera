@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "processors",
+      name: "data-processors",
       script: "npx",
       args: "tsx src/startProcessors.ts",
       instances: 1,
@@ -16,7 +16,7 @@ module.exports = {
     {
       name: "worker-ethereum",
       script: "npx",
-      args: "tsx src/index.ts --chain=ethereum --block=24330403 --targetBlock=24330415",
+      args: "tsx src/index.ts --chain=ethereum --block=23914924 --targetBlock=23964383",
       instances: 1,
       autorestart: true,
       watch: false,
@@ -29,7 +29,7 @@ module.exports = {
     {
       name: "worker-polygon",
       script: "npx",
-      args: "tsx src/index.ts --chain=polygon --block=0 --targetBlock=999999999",
+      args: "tsx src/index.ts --chain=polygon --block=70060972 --targetBlock=70866989",
       instances: 1,
       autorestart: true,
       watch: false,
@@ -42,7 +42,7 @@ module.exports = {
     {
       name: "worker-bnb",
       script: "npx",
-      args: "tsx src/index.ts --chain=bnb --block=0 --targetBlock=999999999",
+      args: "tsx src/index.ts --chain=bnb --block=79762494 --targetBlock=80021678",
       instances: 1,
       autorestart: true,
       watch: false,
