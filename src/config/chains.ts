@@ -29,18 +29,15 @@ export const CHAINS: Record<string, ChainConfig> = {
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", //usdc
       "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", //wbtc
       "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", //weth
+      "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0", //WPOL
       "0x45804880De22913dAFE09f4980848ECE6EcbAf78", //paxos gold
       "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc", //usdc/WETH v2
-      "0x9c4fe5ffd9a9fc5678cfbd93aa2d4fd684b67c4c", //paxos/WETH v2 
       "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852", // weth/usdt v2 
-      "0xbb2b8038a1640196fbe3e38816f3e67cba72d940", //wbtc/weth v2
-      "0xcbcdf9626bc03e24f779434178a73a0b4bad62ed", //wbtc/weth v3
-      "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640", //usdc/weth v3
+      "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640", //usdc/weth v3 500
       "0x9db9e0e53058c89e5b94e29621a205198648425b", // wbtc/usdt v3 3000
       "0x99ac8ca7087fa4a2a1fb6357269965a2014abc35",  // wbtc/usdc v3 3000
       "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8", //usdc/weth v3 3000
-      "0x4585fe77225b41b697c938b018e2ac67ac5a20c0", //wbtc/eth v3 500
-      "0x56534741cd8b152df6d48adf7ac51f75169a83b2", // wbtc/eth v3 500
+      "0x56534741cd8b152df6d48adf7ac51f75169a83b2", // wbtc/usdt v3 500
       "0x11b815efb8f581194ae79006d24e0d814b7697f6"  //weth/usdt v3 500 
     ], // add contract addresses to filter events
   },
@@ -62,10 +59,12 @@ export const CHAINS: Record<string, ChainConfig> = {
       '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', // wbtc
       '0x3ba4c387f786bfee076a58914f5bd38d668b42c3', //wbnb
       '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', //wpol
-      '0x4ccd010148379ea531d6c587cfdd60180196f9b1', // weth/usdt v3 3000
+      '0x553d3d295e0f695b9228246232edf400ed3560b5', //Paxos Gold
+      '0x4ccd010148379ea531d6c587cfdd60180196f9b1', // weth/usdt v3 3000 
+      '0xa4d8c89f0c20efbe54cba9e7e7a7e509056228d9', // USDC/WETH
       '0xb6e57ed85c4c9dbfef2a68711e9d6f36c56e0fcb', //WPOL/usdc v3 500
       '0x781067ef296e5c4a4203f81c593274824b7c185d', //WPOL/usdt v3 300
-      '0x2DB87C4831B2fec2E35591221455834193b50D1B', // WPOL/USDC v3 3000 
+      '0x2db87c4831b2fec2e35591221455834193b50d1b', // WPOL/USDC v3 3000 
     ], // add contract addresses to filter events
   },
   bnb: {
@@ -81,10 +80,11 @@ export const CHAINS: Record<string, ChainConfig> = {
     blockThresholdForTheEvents: 500, // kept it generic for the so that it can adjust amon the rpc providers
     targetAddresses: [
       '0x0555e30da8f98308edb960aa94c0db47230d2b9c', // WBCT
-      '0x8965349fb649a33a30cbfda057d8ec2c48abe2a2', // usdc
+      '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', // usdc
       '0x55d398326f99059ff775485246999027b3197955', // usdt
       '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
-      '0x6fe9E9de56356F7eDBfcBB29FAB7cd69471a4869', // USDT/WBNB v3 500
+      '0x2170ed0880ac9a755fd29b2688956bd959f933f8', //WETH
+      '0x7950865a9140cb519342433146ed5b40c6f210f7', // PAXGOLD
       '0x47a90a2d92a8367a91efa1906bfc8c1e05bf10c4', // usdt/wbnb v3 100
       '0x6fe9e9de56356f7edbfcbb29fab7cd69471a4869', // usdt/wbnb v3 3000
       '0x4141325bac36affe9db165e854982230a14e6d48', // usdc/wbnb v3 100
