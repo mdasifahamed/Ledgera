@@ -54,26 +54,25 @@ model Token {
   stablecoinCexFlows  StablecoinCexFlow[]
 
   @@unique([chainId, tokenAddress])
-  @@index([tokenSymbol])
+  @@index([tokenSymbol, chainId])
   @@map("tokens")
 }
 
 // Table 6: Pool (Reference Table)
 // Stores DEX liquidity pool metadata
 model Pool {
-  id            String  @id @default(uuid())
-  chainId       Int     @map("chain_id")
-  poolAddress   String  @map("pool_address")
-  token0Address String  @map("token_0_address")
-  token1Address String  @map("token_1_address")
-  poolSymbol    String  @map("pool_symbol") // e.g., "WETH/USDT"
-  dexName       String  @map("dex_name") // e.g., "uniswap", "sushiswap"
-  dexVersion    String? @map("dex_version") // e.g., "v2", "v3" (nullable)
-  fees          Int[] // Array of fee tiers
-
-  chain  ChainConfig @relation(fields: [chainId], references: [chainId])
-  token0 Token       @relation("Token0", fields: [chainId, token0Address], references: [chainId, tokenAddress])
-  token1 Token       @relation("Token1", fields: [chainId, token1Address], references: [chainId, tokenAddress])
+  id            String      @id @default(uuid())
+  chainId       Int         @map("chain_id")
+  poolAddress   String      @map("pool_address")
+  token0Address String      @map("token_0_address")
+  token1Address String      @map("token_1_address")
+  poolSymbol    String      @map("pool_symbol") // e.g., "WETH/USDT"
+  dexName       String      @map("dex_name") // e.g., "uniswap", "sushiswap"
+  dexVersion    String?     @map("dex_version") // e.g., "v2", "v3" (nullable)
+  fees          Int // Pool Fees
+  chain         ChainConfig @relation(fields: [chainId], references: [chainId])
+  token0        Token       @relation("Token0", fields: [chainId, token0Address], references: [chainId, tokenAddress])
+  token1        Token       @relation("Token1", fields: [chainId, token1Address], references: [chainId, tokenAddress])
 
   // Pool metrics relations
   swaps     PoolSwap[]
@@ -81,9 +80,9 @@ model Pool {
   poolFees  PoolFees[]
 
   @@unique([chainId, poolAddress])
-  @@index([dexName])
-  @@index([token0Address])
-  @@index([token1Address])
+  @@index([chainId, dexName])
+  @@index([chainId, token0Address])
+  @@index([chainId, token1Address])
   @@map("pools")
 }
 
@@ -162,6 +161,8 @@ model DecodedEvent {
   @@index([contractAddress])
   @@index([eventName])
   @@index([transactionHash])
+  @@index([chainId, contractAddress, eventName, blockNumber, blockTimeStamp])
+  @@index([chainId, contractAddress, eventName, blockTimeStamp])
   @@map("decoded_events")
 }
 
