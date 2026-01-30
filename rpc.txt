@@ -1,0 +1,17 @@
+alchemyeth= https://eth-mainnet.g.alchemy.com/v2/zRpYnLPOoaDJTVb3CyWyi
+alchemypol= https://polygon-mainnet.g.alchemy.com/v2/zRpYnLPOoaDJTVb3CyWyi
+
+
+infuraETh =https://mainnet.infura.io/v3/3ae989464536432ebfc8f3de1f47340c
+infurapol=https://polygon-mainnet.infura.io/v3/3ae989464536432ebfc8f3de1f47340c
+infurabsc =https://bsc-mainnet.infura.io/v3/3ae989464536432ebfc8f3de1f47340c
+
+ankrbsc = https://rpc.ankr.com/bsc/38c11e506162ff79bf12b5f57df59bde5b8e616a4e5e9898bdc157667a4def71
+ankerpol=https://rpc.ankr.com/eth/38c11e506162ff79bf12b5f57df59bde5b8e616a4e5e9898bdc157667a4def71
+ankerpol=https://rpc.ankr.com/polygon/38c11e506162ff79bf12b5f57df59bde5b8e616a4e5e9898bdc157667a4def71
+
+
+
+infuraeth=https://mainnet.infura.io/v3/d047f30af159437b8d0f250f9b6224c0
+infuraPoly = https://polygon-mainnet.infura.io/v3/d047f30af159437b8d0f250f9b6224c0
+infurabsc=https://bsc-mainnet.infura.io/v3/d047f30af159437b8d0f250f9b6224c0
